@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Peminjaman Alat Lab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .modal-backdrop {
+            background-color: rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Container Utama -->
+    <div id="app" class="min-h-screen">
+
+        <!-- Halaman Login & Registrasi -->
+        <div id="auth-page" class="flex items-center justify-center min-h-screen">
+            <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg">
+                <div id="login-view">
+                    <h2 class="text-2xl font-bold text-center">Login Sistem Peminjaman</h2>
+                    <form id="login-form" class="mt-8 space-y-6">
+                        <div>
+                            <label for="login-email" class="text-sm font-medium text-gray-700">Email</label>
+                            <input id="login-email" type="email" required class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="login-password" class="text-sm font-medium text-gray-700">Password</label>
+                            <input id="login-password" type="password" required class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Login</button>
+                    </form>
+                    <p class="mt-4 text-center text-sm">Belum punya akun? <a href="#" id="show-register" class="font-medium text-indigo-600 hover:text-indigo-500">Registrasi di sini</a></p>
+                </div>
+
+                <div id="register-view" class="hidden">
+                    <h2 class="text-2xl font-bold text-center">Registrasi Akun Baru</h2>
+                    <form id="register-form" class="mt-8 space-y-4">
+                        <input id="register-nama" type="text" placeholder="Nama Lengkap" required class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        <input id="register-email" type="email" placeholder="Email" required class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        <input id="register-password" type="password" placeholder="Password (min. 6 karakter)" required class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        
+                        <select id="register-role" required class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                            <option value="mahasiswa">Mahasiswa</option>
+                            <option value="pegawai">Pegawai (Admin)</option>
+                        </select>
+                        
+                        <div id="mahasiswa-fields">
+                             <input id="register-nrp" type="text" placeholder="NRP" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm mt-4">
+                        </div>
+
+                        <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">Registrasi</button>
+                    </form>
+                    <p class="mt-4 text-center text-sm">Sudah punya akun? <a href="#" id="show-login" class="font-medium text-indigo-600 hover:text-indigo-500">Login di sini</a></p>
+                </div>
+                 <div id="auth-error" class="text-red-500 text-sm text-center mt-2"></div>
+            </div>
+        </div>
+
+        <!-- Halaman Utama Aplikasi (setelah login) -->
+        <div id="main-app" class="hidden">
+            <nav class="bg-white shadow-md">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex items-center justify-between h-16">
+                        <div class="flex items-center">
+                            <i class="fas fa-flask text-indigo-600 text-2xl"></i>
+                            <span class="font-bold ml-2 text-xl">LabApp</span>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <span id="user-info" class="text-sm font-medium"></span>
+                            <button id="logout-btn" class="px-3 py-2 rounded-md text-sm font-medium text-white bg-red-500 hover:bg-red-600">Logout</button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                <!-- Tampilan untuk Mahasiswa -->
+                <div id="mahasiswa-dashboard" class="hidden">
+                    <div id="mahasiswa-tabs" class="mb-4 border-b border-gray-200">
+                        <nav class="flex space-x-4" aria-label="Tabs">
+                            <button data-tab="katalog" class="tab-btn text-indigo-600 border-b-2 border-indigo-500 px-3 py-2 font-medium text-sm">Katalog Alat</button>
+                            <button data-tab="peminjaman-saya" class="tab-btn text-gray-500 hover:text-gray-700 px-3 py-2 font-medium text-sm">Peminjaman Saya</button>
+                        </nav>
+                    </div>
+                    <div id="mahasiswa-content"></div>
+                </div>
+
+                <!-- Tampilan untuk Administrator -->
+                <div id="admin-dashboard" class="hidden">
+                     <div id="admin-tabs" class="mb-4 border-b border-gray-200">
+                        <nav class="flex space-x-4" aria-label="Tabs">
+                            <button data-tab="manajemen-peminjaman" class="tab-btn text-indigo-600 border-b-2 border-indigo-500 px-3 py-2 font-medium text-sm">Manajemen Peminjaman</button>
+                            <button data-tab="manajemen-alat" class="tab-btn text-gray-500 hover:text-gray-700 px-3 py-2 font-medium text-sm">Manajemen Alat</button>
+                            <button data-tab="manajemen-kategori" class="tab-btn text-gray-500 hover:text-gray-700 px-3 py-2 font-medium text-sm">Manajemen Kategori</button>
+                        </nav>
+                    </div>
+                    <div id="admin-content"></div>
+                </div>
+            </main>
+        </div>
+
+    </div>
+
+    <!-- Modal Generic -->
+    <div id="modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 text-center">
+            <div class="fixed inset-0 transition-opacity modal-backdrop" aria-hidden="true"></div>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i id="modal-icon" class="fas fa-info-circle text-indigo-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Modal Title</h3>
+                            <div class="mt-2" id="modal-body">
+                                <!-- Modal content goes here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button id="modal-confirm-btn" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 sm:ml-3 sm:w-auto sm:text-sm">Confirm</button>
+                    <button id="modal-cancel-btn" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            signOut,
+            signInWithCustomToken,
+            signInAnonymously
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc,
+            setDoc,
+            getDoc,
+            addDoc,
+            collection,
+            onSnapshot,
+            query,
+            where,
+            updateDoc,
+            deleteDoc,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- KONFIGURASI FIREBASE ---
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : { apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN", projectId: "YOUR_PROJECT_ID" };
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-lab-app';
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- STATE APLIKASI ---
+        let currentUser = null;
+        let userData = null;
+        let unsubscribeListeners = [];
+
+        // --- ELEMEN UI ---
+        const authPage = document.getElementById('auth-page');
+        const mainApp = document.getElementById('main-app');
+        const loginView = document.getElementById('login-view');
+        const registerView = document.getElementById('register-view');
+        const authError = document.getElementById('auth-error');
+
+        // --- FUNGSI UTAMA ---
+
+        // Fungsi untuk menginisialisasi aplikasi setelah login
+        async function initializeAppForUser(user) {
+            currentUser = user;
+            const userDocRef = doc(db, /artifacts/${appId}/public/data/users, user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+
+            if (userDocSnap.exists()) {
+                userData = userDocSnap.data();
+                authPage.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+                document.getElementById('user-info').textContent = Halo, ${userData.nama} (${userData.role});
+                
+                if (userData.role === 'mahasiswa') {
+                    document.getElementById('mahasiswa-dashboard').classList.remove('hidden');
+                    document.getElementById('admin-dashboard').classList.add('hidden');
+                    setupMahasiswaTabs();
+                    renderMahasiswaContent('katalog');
+                } else if (userData.role === 'pegawai') {
+                    document.getElementById('admin-dashboard').classList.remove('hidden');
+                    document.getElementById('mahasiswa-dashboard').classList.add('hidden');
+                    setupAdminTabs();
+                    renderAdminContent('manajemen-peminjaman');
+                }
+            } else {
+                // Jika data user tidak ditemukan, paksa logout
+                console.error("User data not found in Firestore. Logging out.");
+                logout();
+            }
+        }
+        
+        // Fungsi untuk membersihkan state dan UI
+        function cleanupAndGoToLogin() {
+            unsubscribeListeners.forEach(unsub => unsub());
+            unsubscribeListeners = [];
+            currentUser = null;
+            userData = null;
+            mainApp.classList.add('hidden');
+            authPage.classList.remove('hidden');
+            document.getElementById('mahasiswa-dashboard').classList.add('hidden');
+            document.getElementById('admin-dashboard').classList.add('hidden');
+        }
+
+        // Listener status autentikasi
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                await initializeAppForUser(user);
+            } else {
+                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    try {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } catch (e) {
+                        console.error("Custom token sign-in failed, trying anonymous.", e);
+                        await signInAnonymously(auth);
+                    }
+                } else {
+                    cleanupAndGoToLogin();
+                }
+            }
+        });
+
+        // --- FUNGSI AUTENTIKASI ---
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            authError.textContent = '';
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                console.error("Login Error:", error);
+                authError.textContent = "Email atau password salah.";
+            }
+        });
+
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            authError.textContent = '';
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const nama = document.getElementById('register-nama').value;
+            const role = document.getElementById('register-role').value;
+            const nrp = document.getElementById('register-nrp').value;
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                // Simpan data user ke Firestore
+                const userDocRef = doc(db, /artifacts/${appId}/public/data/users, user.uid);
+                await setDoc(userDocRef, {
+                    uid: user.uid,
+                    nama: nama,
+                    email: email,
+                    role: role,
+                    nrp: role === 'mahasiswa' ? nrp : null,
+                    createdAt: serverTimestamp()
+                });
+
+            } catch (error) {
+                 console.error("Register Error:", error);
+                 authError.textContent = error.message;
+            }
+        });
+        
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+             await signOut(auth);
+             cleanupAndGoToLogin();
+        });
+        
+        // Switching views
+        document.getElementById('show-register').addEventListener('click', (e) => {
+            e.preventDefault();
+            loginView.classList.add('hidden');
+            registerView.classList.remove('hidden');
+            authError.textContent = '';
+        });
+        document.getElementById('show-login').addEventListener('click', (e) => {
+            e.preventDefault();
+            registerView.classList.add('hidden');
+            loginView.classList.remove('hidden');
+            authError.textContent = '';
+        });
+        document.getElementById('register-role').addEventListener('change', (e) => {
+            document.getElementById('mahasiswa-fields').style.display = e.target.value === 'mahasiswa' ? 'block' : 'none';
+        });
+
+        // --- FUNGSI RENDER KONTEN ---
+        function setupMahasiswaTabs() {
+            document.querySelectorAll('#mahasiswa-tabs .tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tab = btn.dataset.tab;
+                    document.querySelectorAll('#mahasiswa-tabs .tab-btn').forEach(b => {
+                        b.classList.remove('text-indigo-600', 'border-indigo-500');
+                        b.classList.add('text-gray-500', 'hover:text-gray-700');
+                    });
+                    btn.classList.add('text-indigo-600', 'border-indigo-500');
+                    btn.classList.remove('text-gray-500', 'hover:text-gray-700');
+                    renderMahasiswaContent(tab);
+                });
+            });
+        }
+        
+        function renderMahasiswaContent(tab) {
+             const contentArea = document.getElementById('mahasiswa-content');
+             unsubscribeListeners.forEach(unsub => unsub());
+             unsubscribeListeners = [];
+             contentArea.innerHTML = <div class="text-center p-8"><i class="fas fa-spinner fa-spin text-3xl"></i></div>;
+             
+             if(tab === 'katalog') renderKatalogAlat(contentArea);
+             if(tab === 'peminjaman-saya') renderPeminjamanSaya(contentArea);
+        }
+        
+        function renderKatalogAlat(container) {
+            const alatCollection = collection(db, /artifacts/${appId}/public/data/alat);
+            const q = query(alatCollection);
+            
+            const unsub = onSnapshot(q, (snapshot) => {
+                let html = `
+                    <h3 class="text-xl font-semibold mb-4">Katalog Alat Tersedia</h3>
+                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                `;
+                if (snapshot.empty) {
+                    html = '<p>Belum ada alat yang tersedia.</p>';
+                } else {
+                    snapshot.docs.forEach(doc => {
+                        const alat = doc.data();
+                        const id = doc.id;
+                        html += `
+                            <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow">
+                                <h4 class="text-lg font-bold">${alat.nama_alat}</h4>
+                                <p class="text-sm text-gray-600 mt-1">Lokasi: ${alat.lokasi_penyimpanan}</p>
+                                <p class="text-sm text-gray-500 mt-1">Kondisi: ${alat.kondisi_alat}</p>
+                                <p class="font-semibold mt-2">Stok: ${alat.stok_alat}</p>
+                                <button data-id="${id}" data-nama="${alat.nama_alat}" class="pinjam-btn mt-4 w-full bg-indigo-500 text-white py-2 rounded-md hover:bg-indigo-600 ${alat.stok_alat > 0 ? '' : 'bg-gray-400 cursor-not-allowed'}" ${alat.stok_alat > 0 ? '' : 'disabled'}>
+                                    ${alat.stok_alat > 0 ? '<i class="fas fa-plus mr-2"></i>Pinjam' : 'Stok Habis'}
+                                </button>
+                            </div>
+                        `;
+                    });
+                     html += </div>;
+                }
+                container.innerHTML = html;
+
+                document.querySelectorAll('.pinjam-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const alatId = btn.dataset.id;
+                        const namaAlat = btn.dataset.nama;
+                        showConfirmationModal(Anda yakin ingin meminjam ${namaAlat}?, () => {
+                           ajukanPeminjaman(alatId);
+                        });
+                    });
+                });
+            });
+            unsubscribeListeners.push(unsub);
+        }
+
+        async function ajukanPeminjaman(alatId) {
+            try {
+                const peminjamanCollection = collection(db, /artifacts/${appId}/public/data/peminjaman);
+                await addDoc(peminjamanCollection, {
+                    mahasiswa_uid: currentUser.uid,
+                    mahasiswa_nama: userData.nama,
+                    alat_id: alatId,
+                    alat_nama: (await getDoc(doc(db, /artifacts/${appId}/public/data/alat, alatId))).data().nama_alat,
+                    tanggal_pinjam: serverTimestamp(),
+                    tanggal_kembali: null,
+                    status: 'Menunggu Persetujuan' // Status: Menunggu Persetujuan, Disetujui, Ditolak, Selesai
+                });
+                showInfoModal("Sukses", "Permintaan peminjaman berhasil diajukan.");
+            } catch (error) {
+                console.error("Error creating peminjaman: ", error);
+                showInfoModal("Error", "Gagal mengajukan peminjaman.");
+            }
+        }
+        
+        function renderPeminjamanSaya(container) {
+            const peminjamanCollection = collection(db, /artifacts/${appId}/public/data/peminjaman);
+            const q = query(peminjamanCollection, where("mahasiswa_uid", "==", currentUser.uid));
+
+            const unsub = onSnapshot(q, (snapshot) => {
+                let html = <h3 class="text-xl font-semibold mb-4">Riwayat Peminjaman Saya</h3>;
+                if(snapshot.empty) {
+                    html += '<p>Anda belum pernah melakukan peminjaman.</p>';
+                } else {
+                    html += `<div class="bg-white shadow rounded-lg overflow-hidden">
+                               <table class="min-w-full divide-y divide-gray-200">
+                                 <thead class="bg-gray-50">
+                                   <tr>
+                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alat</th>
+                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tgl Pinjam</th>
+                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                   </tr>
+                                 </thead>
+                                 <tbody class="bg-white divide-y divide-gray-200">`;
+                    snapshot.docs.forEach(doc => {
+                        const pinjam = doc.data();
+                        const statusColor = {
+                            'Menunggu Persetujuan': 'bg-yellow-100 text-yellow-800',
+                            'Disetujui': 'bg-blue-100 text-blue-800',
+                            'Ditolak': 'bg-red-100 text-red-800',
+                            'Selesai': 'bg-green-100 text-green-800'
+                        };
+                        html += `<tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">${pinjam.alat_nama}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">${pinjam.tanggal_pinjam ? new Date(pinjam.tanggal_pinjam.seconds * 1000).toLocaleDateString('id-ID') : 'N/A'}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor[pinjam.status] || 'bg-gray-100 text-gray-800'}">
+                                            ${pinjam.status}
+                                        </span>
+                                    </td>
+                                 </tr>`;
+                    });
+                    html += </tbody></table></div>;
+                }
+                container.innerHTML = html;
+            });
+            unsubscribeListeners.push(unsub);
+        }
+
+        // --- FUNGSI ADMIN ---
+        function setupAdminTabs() {
+            document.querySelectorAll('#admin-tabs .tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tab = btn.dataset.tab;
+                     document.querySelectorAll('#admin-tabs .tab-btn').forEach(b => {
+                        b.classList.remove('text-indigo-600', 'border-indigo-500');
+                        b.classList.add('text-gray-500', 'hover:text-gray-700');
+                    });
+                    btn.classList.add('text-indigo-600', 'border-indigo-500');
+                    btn.classList.remove('text-gray-500', 'hover:text-gray-700');
+                    renderAdminContent(tab);
+                });
+            });
+        }
+        
+        function renderAdminContent(tab) {
+             const contentArea = document.getElementById('admin-content');
+             unsubscribeListeners.forEach(unsub => unsub());
+             unsubscribeListeners = [];
+             contentArea.innerHTML = <div class="text-center p-8"><i class="fas fa-spinner fa-spin text-3xl"></i></div>;
+
+             if(tab === 'manajemen-peminjaman') renderManajemenPeminjaman(contentArea);
+             if(tab === 'manajemen-alat') renderManajemenAlat(contentArea);
+             if(tab === 'manajemen-kategori') renderManajemenKategori(contentArea);
+        }
+        
+        function renderManajemenPeminjaman(container) {
+            const peminjamanCollection = collection(db, /artifacts/${appId}/public/data/peminjaman);
+            const q = query(peminjamanCollection);
+            
+            const unsub = onSnapshot(q, (snapshot) => {
+                 let html = <h3 class="text-xl font-semibold mb-4">Manajemen Peminjaman</h3>;
+                 if(snapshot.empty) {
+                    html += '<p>Belum ada data peminjaman.</p>';
+                 } else {
+                    html += `<div class="bg-white shadow rounded-lg overflow-hidden">
+                               <table class="min-w-full divide-y divide-gray-200">
+                                 <thead class="bg-gray-50">
+                                   <tr>
+                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Peminjam</th>
+                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Alat</th>
+                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                                   </tr>
+                                 </thead>
+                                 <tbody class="bg-white divide-y divide-gray-200">`;
+                    snapshot.docs.forEach(doc => {
+                        const pinjam = doc.data();
+                        const id = doc.id;
+                        html += `<tr>
+                                    <td class="px-6 py-4">${pinjam.mahasiswa_nama}</td>
+                                    <td class="px-6 py-4">${pinjam.alat_nama}</td>
+                                    <td class="px-6 py-4">${pinjam.status}</td>
+                                    <td class="px-6 py-4 text-sm font-medium">`;
+                        if (pinjam.status === 'Menunggu Persetujuan') {
+                            html += `<button data-id="${id}" class="approve-btn text-green-600 hover:text-green-900">Setujui</button>
+                                     <button data-id="${id}" class="reject-btn text-red-600 hover:text-red-900 ml-4">Tolak</button>`;
+                        } else if (pinjam.status === 'Disetujui') {
+                             html += <button data-id="${id}" data-alat-id="${pinjam.alat_id}" class="complete-btn text-blue-600 hover:text-blue-900">Selesaikan</button>;
+                        } else {
+                            html += -;
+                        }
+                        html += </td></tr>;
+                    });
+                    html += </tbody></table></div>;
+                 }
+                 container.innerHTML = html;
+                 
+                 // Add event listeners
+                 document.querySelectorAll('.approve-btn').forEach(btn => btn.addEventListener('click', (e) => updateStatusPeminjaman(e.target.dataset.id, 'Disetujui')));
+                 document.querySelectorAll('.reject-btn').forEach(btn => btn.addEventListener('click', (e) => updateStatusPeminjaman(e.target.dataset.id, 'Ditolak')));
+                 document.querySelectorAll('.complete-btn').forEach(btn => btn.addEventListener('click', (e) => selesaikanPeminjaman(e.target.dataset.id, e.target.dataset.alatId)));
+            });
+            unsubscribeListeners.push(unsub);
+        }
+        
+        async function updateStatusPeminjaman(id, status) {
+            const docRef = doc(db, /artifacts/${appId}/public/data/peminjaman, id);
+            await updateDoc(docRef, { status: status });
+            // Jika disetujui, kurangi stok
+            if (status === 'Disetujui') {
+                const pinjamDoc = await getDoc(docRef);
+                const alatId = pinjamDoc.data().alat_id;
+                const alatRef = doc(db, /artifacts/${appId}/public/data/alat, alatId);
+                const alatDoc = await getDoc(alatRef);
+                const currentStock = alatDoc.data().stok_alat;
+                await updateDoc(alatRef, { stok_alat: currentStock - 1 });
+            }
+        }
+        
+        async function selesaikanPeminjaman(id, alatId) {
+             const docRef = doc(db, /artifacts/${appId}/public/data/peminjaman, id);
+             await updateDoc(docRef, { 
+                 status: 'Selesai',
+                 tanggal_kembali: serverTimestamp()
+             });
+             // Tambah stok kembali
+             const alatRef = doc(db, /artifacts/${appId}/public/data/alat, alatId);
+             const alatDoc = await getDoc(alatRef);
+             const currentStock = alatDoc.data().stok_alat;
+             await updateDoc(alatRef, { stok_alat: currentStock + 1 });
+        }
+        
+        function renderManajemenAlat(container) {
+            const unsub = onSnapshot(collection(db, /artifacts/${appId}/public/data/alat), (snapshot) => {
+                let html = `<div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-semibold">Manajemen Alat</h3>
+                                <button id="add-alat-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Tambah Alat</button>
+                            </div>`;
+                html += `<div class="bg-white shadow rounded-lg overflow-x-auto">
+                           <table class="min-w-full divide-y divide-gray-200">
+                             <thead class="bg-gray-50">
+                               <tr>
+                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Alat</th>
+                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lokasi</th>
+                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stok</th>
+                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                               </tr>
+                             </thead>
+                             <tbody class="bg-white divide-y divide-gray-200">`;
+                snapshot.forEach(doc => {
+                    const alat = doc.data();
+                    const id = doc.id;
+                    html += `<tr>
+                               <td class="px-6 py-4">${alat.nama_alat}</td>
+                               <td class="px-6 py-4">${alat.lokasi_penyimpanan}</td>
+                               <td class="px-6 py-4">${alat.stok_alat}</td>
+                               <td class="px-6 py-4 text-sm font-medium">
+                                 <button data-id="${id}" class="edit-alat-btn text-indigo-600 hover:text-indigo-900">Edit</button>
+                                 <button data-id="${id}" class="delete-alat-btn text-red-600 hover:text-red-900 ml-4">Hapus</button>
+                               </td>
+                             </tr>`;
+                });
+                html += </tbody></table></div>;
+                container.innerHTML = html;
+                
+                document.getElementById('add-alat-btn').addEventListener('click', () => showAlatModal());
+                document.querySelectorAll('.edit-alat-btn').forEach(btn => btn.addEventListener('click', (e) => showAlatModal(e.target.dataset.id)));
+                document.querySelectorAll('.delete-alat-btn').forEach(btn => btn.addEventListener('click', (e) => deleteAlat(e.target.dataset.id)));
+            });
+            unsubscribeListeners.push(unsub);
+        }
+        
+        async function showAlatModal(id = null) {
+            let alat = {};
+            if (id) {
+                const docRef = doc(db, /artifacts/${appId}/public/data/alat, id);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    alat = docSnap.data();
+                }
+            }
+
+            const modalTitle = id ? 'Edit Alat' : 'Tambah Alat Baru';
+            const modalBody = `
+                <form id="alat-form" class="space-y-4">
+                    <input type="hidden" id="alat-id" value="${id || ''}">
+                    <div>
+                        <label class="block text-sm font-medium">Nama Alat</label>
+                        <input type="text" id="nama_alat" value="${alat.nama_alat || ''}" class="mt-1 w-full border-gray-300 rounded-md shadow-sm" required>
+                    </div>
+                     <div>
+                        <label class="block text-sm font-medium">Kondisi</label>
+                        <input type="text" id="kondisi_alat" value="${alat.kondisi_alat || 'Baik'}" class="mt-1 w-full border-gray-300 rounded-md shadow-sm" required>
+                    </div>
+                     <div>
+                        <label class="block text-sm font-medium">Lokasi Penyimpanan</label>
+                        <input type="text" id="lokasi_penyimpanan" value="${alat.lokasi_penyimpanan || ''}" class="mt-1 w-full border-gray-300 rounded-md shadow-sm" required>
+                    </div>
+                     <div>
+                        <label class="block text-sm font-medium">Stok</label>
+                        <input type="number" id="stok_alat" value="${alat.stok_alat || 0}" class="mt-1 w-full border-gray-300 rounded-md shadow-sm" required>
+                    </div>
+                </form>
+            `;
+            
+            showModal(modalTitle, modalBody, async () => {
+                const alatData = {
+                    nama_alat: document.getElementById('nama_alat').value,
+                    kondisi_alat: document.getElementById('kondisi_alat').value,
+                    lokasi_penyimpanan: document.getElementById('lokasi_penyimpanan').value,
+                    stok_alat: parseInt(document.getElementById('stok_alat').value, 10),
+                };
+
+                if (id) {
+                    const docRef = doc(db, /artifacts/${appId}/public/data/alat, id);
+                    await updateDoc(docRef, alatData);
+                } else {
+                    await addDoc(collection(db, /artifacts/${appId}/public/data/alat), alatData);
+                }
+                closeModal();
+            });
+        }
+        
+        function deleteAlat(id) {
+            showConfirmationModal("Anda yakin ingin menghapus alat ini?", async () => {
+                await deleteDoc(doc(db, /artifacts/${appId}/public/data/alat, id));
+            });
+        }
+        
+         function renderManajemenKategori(container) {
+            container.innerHTML = <p class="p-4 bg-yellow-100 text-yellow-800 rounded-md">Fitur Manajemen Kategori sedang dalam pengembangan.</p>
+        }
+        
+        // --- FUNGSI MODAL ---
+        const modal = document.getElementById('modal');
+        const modalTitleEl = document.getElementById('modal-title');
+        const modalBodyEl = document.getElementById('modal-body');
+        const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+        const modalCancelBtn = document.getElementById('modal-cancel-btn');
+
+        function showModal(title, body, onConfirm) {
+            modalTitleEl.textContent = title;
+            modalBodyEl.innerHTML = body;
+            modal.classList.remove('hidden');
+            
+            modalConfirmBtn.onclick = onConfirm; // Assign new click handler
+        }
+
+        modalCancelBtn.addEventListener('click', () => closeModal());
+        function closeModal() {
+            modal.classList.add('hidden');
+        }
+        
+        function showConfirmationModal(message, onConfirm) {
+            showModal('Konfirmasi', <p>${message}</p>, () => {
+                onConfirm();
+                closeModal();
+            });
+        }
+        
+        function showInfoModal(title, message) {
+            showModal(title, <p>${message}</p>, closeModal);
+            modalCancelBtn.classList.add('hidden');
+            modalConfirmBtn.textContent = 'OK';
+        }
+        
+    </script>
+</body>
+</html>
