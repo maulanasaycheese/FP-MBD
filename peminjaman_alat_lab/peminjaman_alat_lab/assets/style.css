@@ -1,0 +1,130 @@
+/*
+ * File: assets/style.css
+ * Deskripsi: File CSS kustom untuk melengkapi Tailwind CSS pada proyek Sistem Peminjaman Lab.
+ * Ini berisi gaya dasar, komponen kustom, dan animasi.
+ */
+
+/* Mengimpor font utama dari Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/*
+ * Variabel Global
+ * Mendefinisikan warna utama agar konsisten dan mudah diubah.
+ */
+:root {
+    --color-primary: #4f46e5; /* Indigo 600 */
+    --color-primary-hover: #4338ca; /* Indigo 700 */
+    --color-danger: #dc2626; /* Red 600 */
+    --color-success: #16a34a; /* Green 600 */
+    --color-background: #f3f4f6; /* Gray 100 */
+    --color-text-primary: #1f2937; /* Gray 800 */
+    --color-text-secondary: #6b7280; /* Gray 500 */
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/*
+ * Gaya Dasar (Base Styles)
+ * Menerapkan font dan anti-aliasing untuk tampilan teks yang lebih halus.
+ */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+ * Komponen Kustom (Custom Components)
+ * Kelas-kelas ini menggabungkan beberapa utilitas Tailwind untuk penggunaan berulang.
+ */
+
+/* Tombol (Button) */
+.btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem; /* rounded-md */
+    font-weight: 600; /* font-semibold */
+    text-align: center;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    color: white;
+}
+.btn-primary:hover {
+    background-color: var(--color-primary-hover);
+}
+
+/* Input Form */
+.form-input {
+    width: 100%;
+    margin-top: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db; /* border-gray-300 */
+    border-radius: 0.375rem; /* rounded-md */
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+}
+
+/* Notifikasi (Alerts) */
+.alert {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+    border-width: 1px;
+    font-weight: 500;
+}
+.alert-success {
+    background-color: #d1fae5; /* bg-green-100 */
+    border-color: #6ee7b7; /* border-green-300 */
+    color: #065f46; /* text-green-800 */
+}
+.alert-danger {
+    background-color: #fee2e2; /* bg-red-100 */
+    border-color: #fca5a5; /* border-red-300 */
+    color: #991b1b; /* text-red-800 */
+}
+
+/* Kartu Statistik (Stat Cards) */
+.stat-card {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem; /* rounded-lg */
+    box-shadow: var(--shadow-md);
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    display: block; /* Agar bisa digunakan dengan tag <a> */
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+/*
+ * Animasi
+ * Efek visual untuk membuat antarmuka lebih dinamis.
+ */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.content-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
